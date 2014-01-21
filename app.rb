@@ -78,7 +78,7 @@ end
 
 
 
- GET the show page for a particular product
+ #GET the show page for a particular product
 get '/products/:id' do
   c = PGconn.new(:host => "localhost", :dbname => dbname, :password => "xennifer")
   @product = c.exec_params("SELECT * FROM products WHERE products.id = $1;", [params[:id]]).first
@@ -93,7 +93,7 @@ get '/products/:id' do
       @cat = ["none"]
     end
 
-   end
+   # end
   # puts "@@@@@@@@@@@@@@@@@@@@ prod_cat: #{} @@@@@@@@@@@@@@@@@@@@@@"
   c.close
   erb :product
