@@ -39,8 +39,7 @@ end
 post '/products' do
   c = PGconn.new(:host => "localhost", :dbname => dbname, :password => "xennifer")
 
-  # Insert the new row into the products ta
-ble.
+  # Insert the new row into the products table.
   c.exec_params("INSERT INTO products (name, price, description) VALUES ($1,$2,$3)",
                   [params["name"], params["price"], params["description"]])
 
@@ -77,13 +76,37 @@ post '/products/:id/destroy' do
   redirect '/products'
 end
 
-# GET the show page for a particular product
+
+
+ GET the show page for a particular product
 get '/products/:id' do
   c = PGconn.new(:host => "localhost", :dbname => dbname, :password => "xennifer")
   @product = c.exec_params("SELECT * FROM products WHERE products.id = $1;", [params[:id]]).first
+
+   prod_cat = c.exec_params("SELECT category_id FROM product_categories WHERE product_id = $1;", [params["id"]])
+ 
+     @cat = prod_cat.map do |x|
+      c.exec_params("SELECT categories.name FROM categories WHERE categories.id = #{x["category_id"]};").values.flatten
+      end
+
+    if @cat.empty?
+      @cat = ["none"]
+    end
+
+   end
+  # puts "@@@@@@@@@@@@@@@@@@@@ prod_cat: #{} @@@@@@@@@@@@@@@@@@@@@@"
   c.close
   erb :product
 end
+
+
+
+
+
+
+
+
+
 
 ######################################
 
@@ -126,6 +149,8 @@ post '/categories/:id' do
   # Update the category.
   c.exec_params("UPDATE categories SET (name, description) = ($2, $3) WHERE categories.id = $1 ",
                 [params["id"], params["name"], params["description"]])
+
+
   c.close
   redirect "/categories/#{params["id"]}"
 end
@@ -138,6 +163,10 @@ get '/categories/:id/edit' do
   c.close
   erb :edit_category
 end
+
+
+
+
 # DELETE to delete a category
 post '/categories/:id/destroy' do
 
@@ -159,12 +188,12 @@ get '/categories/:id' do
   # if prod_cat.first['product_id'] == nil
   #    @product = "none"
   #  else
-     @product = prod_cat.map do |x|
+     @prod = prod_cat.map do |x|
       c.exec_params("SELECT products.name FROM products WHERE products.id = #{x["product_id"]};").values.flatten
     end
 
-    if @product.empty?
-      @product = ["none"]
+    if @prod.empty?
+      @prod = ["none"]
     end
 
    # end
