@@ -130,11 +130,11 @@ post '/categories/:id' do
   redirect "/categories/#{params["id"]}"
 end
 
+
+
 get '/categories/:id/edit' do
   c = PGconn.new(:host => "localhost", :dbname => dbname, :password => "xennifer")
   @category = c.exec_params("SELECT * FROM categories WHERE categories.id = $1", [params["id"]]).first
-  @cat_products =c.exec_params("SELECT * FROM products_categories WHERE categories.id=$1")
-
   c.close
   erb :edit_category
 end
@@ -147,10 +147,28 @@ post '/categories/:id/destroy' do
   redirect '/categories'
 end
 
+
 # GET the show page for a particular category
 get '/categories/:id' do
   c = PGconn.new(:host => "localhost", :dbname => dbname, :password => "xennifer")
   @category = c.exec_params("SELECT * FROM categories WHERE categories.id = $1;", [params[:id]]).first
+  # Get all rows from the products_category table.
+   prod_cat = c.exec_params("SELECT product_id FROM product_categories WHERE category_id = $1;", [params["id"]])
+ 
+   #still need to fix nil case
+  # if prod_cat.first['product_id'] == nil
+  #    @product = "none"
+  #  else
+     @product = prod_cat.map do |x|
+      c.exec_params("SELECT products.name FROM products WHERE products.id = #{x["product_id"]};").values.flatten
+    end
+
+    if @product.empty?
+      @product = ["none"]
+    end
+
+   # end
+  # puts "@@@@@@@@@@@@@@@@@@@@ prod_cat: #{prod_cat.first["product_id"]} @@@@@@@@@@@@@@@@@@@@@@"
   c.close
   erb :category
 end
